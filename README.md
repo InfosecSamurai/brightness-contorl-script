@@ -4,16 +4,19 @@
 
 If you encounter issues with changing brightness using your keyboard shortcuts, this repository contains scripts designed to enhance control over various system settings, including brightness, volume, screen resolution, CPU governor, night mode, and Wi-Fi management.
 
-## 💡 Brightness Control Script 
-
-This script creates a symlink to the Intel backlight settings, making it easier to manage brightness on Linux systems where default keybindings may not work.
-
-### 📜 Script Details
-
+### 📜 Script(s) Details
 ```
-set_brightness_symlink.sh
+brightness_symlink.sh
+volume_control.sh
+resolution_changer.sh
+cpu_governor.sh
+night_mode_toggle.sh
+toggle_wifi.sh
 ```
 ---
+
+## 💡 Brightness Control Script 
+
 This script does the following:
 - ❌ Removes the existing `nvidia_0` symlink (if it exists).
 - ➡️ Creates a new symlink pointing to `intel_backlight`.
@@ -76,11 +79,7 @@ This script effectively updates the brightness symlink from `nvidia_0` to `intel
    ```
 ---
 
-## 🔧 Additional Scripts
-
-In addition to the brightness control script, this repository includes several other scripts to help manage system settings:
-
-### 🔊 Volume Control Script
+## 🔊 Volume Control Script
 **Script Name**: `volume_control.sh`  
 **Description**: Adjusts the system's volume level directly from the command line.
 
@@ -103,22 +102,19 @@ echo "Volume set to $LEVEL%"
 
 Save the script to a file, e.g., `set_volume.sh.`
 Make it executable with the command:
-
-          
+         
 ```
 chmod +x set_volume.sh
 ```
     
-
 Run the script with a level argument:
 
-      
 ```
 ./set_volume.sh
 ```
 ---
 
-### 🖥️ Screen Resolution Changer Script
+## 🖥️ Screen Resolution Changer Script
 **Script Name**: `resolution_changer.sh`  
 **Description**: Changes the screen resolution based on user input.
 
@@ -155,8 +151,7 @@ fi
 
 Save the script to a file, for example, `change_resolution.sh`
 Make it executable with the command:
-
-          
+         
 ```
 chmod +x change_resolution.sh
 ```
@@ -170,29 +165,69 @@ Run the script with a resolution argument:
     
 ---
 
-### ⚙️ CPU Governor Set Script
-**Script Name**: `cpu_governor_set.sh`  
-**Description**: Changes the CPU frequency governor for performance or power savings.
-
 ```bash
 #!/bin/bash
 
+# Function to display usage information
+usage() {
+    echo "Usage: $0 <governor (e.g., performance, powersave, ondemand, conservative)>"
+    exit 1
+}
+
 # Check if a governor has been provided
 if [ -z "$1" ]; then
-    echo "Usage: $0 <governor (e.g., performance, powersave)>"
-    exit 1
+    usage
 fi
 
 GOVERNOR=$1
 
+# List of valid governors (modify as needed)
+VALID_GOVERNORS=("performance" "powersave" "ondemand" "conservative")
+
+# Check if the provided governor is valid
+if [[ ! " ${VALID_GOVERNORS[@]} " =~ " ${GOVERNOR} " ]]; then
+    echo "Error: Invalid governor '$GOVERNOR'. Valid options are: ${VALID_GOVERNORS[*]}"
+    exit 1
+fi
+
 # Set CPU governor (requires root privileges)
-echo $GOVERNOR | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor > /dev/null
-echo "CPU governor changed to $GOVERNOR"
+if echo "$GOVERNOR" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor > /dev/null; then
+    echo "CPU governor changed to $GOVERNOR"
+else
+    echo "Error: Failed to change CPU governor."
+    exit 1
+fi
 ```
 
+### Improvements Made
+
+1. **Usage Function**: 
+   - Added a `usage` function to provide clear instructions for how to use the script.
+
+2. **Valid Governor Check**: 
+   - Implemented a check to validate the provided governor against a predefined list of valid governors. An error message is shown if the user inputs an invalid governor.
+
+3. **Error Handling on `tee` Command**: 
+   - The script now checks whether the `tee` command successfully executed and gives feedback if it fails.
+
+### How to Use the Updated Script
+
+1. **Save the script** to a file, e.g., `set_cpu_governor.sh`.
+2. **Make it executable**:
+   ```bash
+   chmod +x set_cpu_governor.sh
+   ```
+3. **Run the script with a valid governor** (requires root privileges):
+   ```bash
+   ./set_cpu_governor.sh performance
+   ```
+
+### Note
+- Ensure that the script is executed with sufficient privileges (it may prompt for a password depending on your system's configuration), as it modifies system files.
+- The list of valid governors can be adjusted based on the governors supported by your CPU and system configuration. You can typically check which governors are available on your system by looking into `/sys/devices/system/cpu/cpu*/cpufreq/scaling_available_governors`.
 ---
 
-### 🌙 Night Mode Toggle Script
+## 🌙 Night Mode Toggle Script
 **Script Name**: `night_mode_toggle.sh`  
 **Description**: Toggles night mode settings to reduce blue light on the screen.
 
@@ -244,50 +279,12 @@ fi
    ./toggle_night_mode.sh
    ```
 
-With these improvements, the script is more user-friendly and provides better feedback in case of errors.fd
 ---
 
-### 📶 Wi-Fi Toggle Script
+## 📶 Wi-Fi Toggle Script
 **Script Name**: `wifi_toggle.sh`  
 **Description**: Toggles the Wi-Fi on or off.
 
-```bash
-#!/bin/bash
-
-# Check if nmcli is installed
-if ! command -v nmcli &> /dev/null; then
-    echo "Error: nmcli is not installed. Please install NetworkManager to use this script."
-    exit 1
-fi
-
-# Check the current Wi-Fi status
-STATUS=$(nmcli radio wifi)
-
-# Check for errors in the status command
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to retrieve Wi-Fi status. Please check your NetworkManager configuration."
-    exit 1
-fi
-
-if [ "$STATUS" == "enabled" ]; then
-    nmcli radio wifi off
-    if [ $? -eq 0 ]; then
-        echo "Wi-Fi turned off."
-    else
-        echo "Error: Failed to turn off Wi-Fi."
-        exit 1
-    fi
-else
-    nmcli radio wifi on
-    if [ $? -eq 0 ]; then
-        echo "Wi-Fi turned on."
-    else
-        echo "Error: Failed to turn on Wi-Fi."
-        exit 1
-    fi
-fi
-```
-Your script for toggling the Wi-Fi status using `nmcli` is already straightforward. 
 
 ```bash 
 #!/bin/bash
@@ -348,9 +345,6 @@ fi
    ```bash
    ./toggle_wifi.sh
    ```
-
-This version of the script is more robust and user-friendly, ensuring better feedback and error handling when working with the Wi-Fi settings.
----
 
 ## 🚀 How to Use
 
