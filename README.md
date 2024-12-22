@@ -8,16 +8,32 @@ If you encounter issues with changing brightness using your keyboard shortcuts, 
 
 This script creates a symlink to the Intel backlight settings, making it easier to manage brightness on Linux systems where default keybindings may not work.
 
-#### 📜 Script Details
+## 📜 Script Details
 
-#### `set_brightness_symlink.sh`
+### `set_brightness_symlink.sh`
 This script does the following:
 - ❌ Removes the existing `nvidia_0` symlink (if it exists).
 - ➡️ Creates a new symlink pointing to `intel_backlight`.
 
+**Script Code**:
+```bash
+#!/bin/bash
+
+# Remove existing nvidia_0 symlink if it exists
+if [ -L /sys/class/backlight/nvidia_0 ]; then
+    sudo rm /sys/class/backlight/nvidia_0
+fi
+
+# Create a new symlink to intel_backlight
+sudo ln -s /sys/class/backlight/intel_backlight /sys/class/backlight/nvidia_0
+
+echo "Brightness symlink updated to use intel_backlight."
+```
+
 ---
 
-### 🔧 Additional Scripts
+## 🔧 Additional Scripts
+
 In addition to the brightness control script, this repository includes several other scripts to help manage system settings:
 
 ### 🔊 Volume Control Script
@@ -160,10 +176,4 @@ Contributions are welcome! Please follow these steps:
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ### 📬 Contact
-For questions or suggestions, reach out to [your email or GitHub profile link].
-
-### Enhancements Made:
-1. **Section Dividers**: Used `---` to separate different scripts, enhancing readability.
-2. **Consistent Formatting**: Kept consistent formatting for script names and descriptions.
-3. **Clarity**: Clear headings and bulleted lists for easy navigation and understanding.
-4. **Repository Name**: Updated the clone command with the new repository name `linux-utility-scripts`.
+For questions or suggestions, reach out to [Email](InfosecSamurai@onmail.com)
